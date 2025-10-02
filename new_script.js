@@ -8,10 +8,18 @@ import { systemPrompt } from "./promptConfig.js";
 // --- API Keys & Configuration ---
 // SECURITY NOTE: In production, never expose keys client-side.
 
+// --- API Endpoints ---
+// This is the address of your live backend server on Render!
+const RENDER_SERVER_URL = "https://chat-assistant-txqb.onrender.com"; 
 
-const HF_API_URL = "https://router.huggingface.co/v1/chat/completions";
-const HF_MODEL_ID = "openai/gpt-oss-20b:nebius";
-const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent";
+// Your frontend now sends ALL requests to your own server, which handles the keys securely.
+const HF_API_URL = `${RENDER_SERVER_URL}/api/huggingface`;
+const HF_MODEL_ID = "openai/gpt-oss-20b:nebius"; // Keep the model ID
+const GEMINI_API_URL = `${RENDER_SERVER_URL}/api/gemini`;
+
+//const HF_API_URL = "https://router.huggingface.co/v1/chat/completions";
+//const HF_MODEL_ID = "openai/gpt-oss-20b:nebius";
+//const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent";
 
 // --- HTML Elements ---
 const messagesDiv = document.getElementById('messages');
@@ -68,7 +76,7 @@ function buildAugmentedPrompt(userInput) {
 // Gemini Connector
 // -----------------------------------------------------------
 async function getGeminiCompletion(history) {
-  const response = await fetch('http://localhost:3000/api/gemini', {
+  const response = await fetch(GEMINI_API_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ contents: history })
@@ -87,7 +95,7 @@ async function getGeminiCompletion(history) {
 // Hugging Face Connector
 // -----------------------------------------------------------
 async function getHuggingFaceCompletion(messages) {
-  const response = await fetch('http://localhost:3000/api/huggingface', {
+  const response = await fetch(HF_API_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ messages, model: HF_MODEL_ID })
