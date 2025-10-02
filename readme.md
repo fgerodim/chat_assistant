@@ -1,8 +1,4 @@
-That is an excellent clarification\! You want the raw text content of the `README.md` to paste directly into GitHub's online file editor, without the file block syntax (\`\`\`\`markdown:Project Readme:README.md\` and \`\`).
 
-Here is the exact text you need to copy and paste into the GitHub editor:
-
-```
 # Master Thesis Chat Assistant & Language Tool
 
 This project implements a secure, full-stack web application designed to assist master's students with academic writing and language practice. It integrates powerful large language models (LLMs) with custom pedagogical features, such as the Common European Framework of Reference (CEFR) leveling and text corpus analysis.
@@ -91,4 +87,3 @@ The AI model is instructed to act as a supportive **Master Thesis Writing Coach 
 * **Style:** Concise, polite, and student-friendly.
 
 This project was built to demonstrate secure, decoupled architecture for LLM applications.
-```
