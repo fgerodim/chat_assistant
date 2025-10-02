@@ -1,4 +1,5 @@
 
+
 # Master Thesis Chat Assistant & Language Tool
 
 This project implements a secure, full-stack web application designed to assist master's students with academic writing and language practice. It integrates powerful large language models (LLMs) with custom pedagogical features, such as the Common European Framework of Reference (CEFR) leveling and text corpus analysis.
