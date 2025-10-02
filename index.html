@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Master Thesis Chat Assistant</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+
+    <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-lg flex flex-col h-[80vh]">
+        <h1 class="text-2xl font-bold text-gray-800 text-center mb-4">Chat Assistant</h1>
+
+        <div class="mb-4 space-y-3 p-3 border border-indigo-200 rounded-lg bg-indigo-50">
+            <div>
+                <label for="cefr-level" class="block text-sm font-semibold text-gray-700 mb-1">Target CEFR Level:</label>
+                <select id="cefr-level" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-base p-2" required>
+                    <option value="A1">A1 </option>
+                    <option value="A2">A2 </option>
+                    <option value="B1" selected>B1 </option>
+                    <option value="B2">B2 </option>
+                    <option value="C1">C1 </option>
+                    <option value="C2">C2 </option>
+                </select>
+            </div>
+
+            <div>
+                <label for="corpus-file-input" class="block text-sm font-semibold text-gray-700 mb-1">Upload Text Corpus (.txt only):</label>
+                <input type="file" id="corpus-file-input" accept=".txt" class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-white p-1">
+                <p class="text-xs text-gray-500 mt-1">This text will be sent to the AI for exercise generation.</p>
+            </div>
+        </div>
+        <div class="mb-4">
+            <label for="llm-selector" class="block text-sm font-medium text-gray-700 mb-1">Select an AI Assistant:</label>
+            <select id="llm-selector" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-base">
+                <option value="gemini">Gemini</option>
+                <option value="gpt">GPT</option>
+            </select>
+        </div>
+
+        <div id="messages" class="chat-container flex flex-col space-y-4 p-4 border rounded-xl bg-gray-50 flex-grow mb-4 overflow-y-auto">
+            <div class="bg-blue-500 text-white p-3 rounded-lg max-w-xs self-start shadow-md">
+                Hello! How can I help you today?
+            </div>
+        </div>
+
+        <div class="flex items-center space-x-4">
+            <input type="text" id="prompt-input" placeholder="Type your request" class="flex-grow rounded-full p-3 border border-gray-300 focus:outline-none focus:border-indigo-500 shadow-sm text-gray-800">
+            <button id="send-btn" class="bg-indigo-600 text-white rounded-full p-3 w-12 h-12 flex items-center justify-center hover:bg-indigo-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
+                </svg>
+            </button>
+        </div>
+        
+        <div id="thinking-message" class="text-gray-500 text-sm mt-2 text-center hidden">
+            Assistant is thinking...
+        </div>
+        <button id="reset-btn" class="text-sm text-red-500 hover:text-red-700 mt-2 self-end">Reset Chat History</button>
+    </div>
+    
+    <script src="new_script.js" type="module"></script>
+    
+</body>
+</html>

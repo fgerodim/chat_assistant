@@ -1,0 +1,16 @@
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #f3f4f6;
+}
+
+/* Custom styles for the chat message container */
+.chat-container {
+    height: calc(100vh - 12rem);
+    overflow-y: auto;
+    /* Hide scrollbar for different browsers */
+    -ms-overflow-style: none; /* Internet Explorer 10+ */
+    scrollbar-width: none;    /* Firefox */
+}
+.chat-container::-webkit-scrollbar {
+    display: none; /* Safari and Chrome */
+}
