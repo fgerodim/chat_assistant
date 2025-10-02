@@ -3,7 +3,7 @@
  * Adds CEFR + corpus integration AND externalized role/scope via promptConfig.js
  */
 
-import { systemPrompt } from "./promptConfig.js";
+import { systemPrompt } from "./professionalPrompt.js";
 
 // --- API Keys & Configuration ---
 // SECURITY NOTE: In production, never expose keys client-side.
