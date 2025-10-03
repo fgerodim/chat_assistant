@@ -29,6 +29,7 @@ const thinkingMessage = document.getElementById('thinking-message');
 const llmSelector = document.getElementById('llm-selector');
 const cefrSelector = document.getElementById('cefr-level');
 const corpusInput = document.getElementById('corpus-file-input');
+const downloadBtn = document.getElementById('download-btn'); 
 
 // --- Conversation Histories ---
 let hfConversationHistory = [];
@@ -37,6 +38,9 @@ let geminiConversationHistory = [];
 // --- State for CEFR + Corpus ---
 let currentCEFR = cefrSelector.value;
 let corpusText = "";
+
+// --- State for Download ---
+let lastAssistantResponse = "";
 
 // --- Helper: Display messages ---
 function displayMessage(text, isUser = false) {
@@ -47,7 +51,7 @@ function displayMessage(text, isUser = false) {
     if (isUser) {
         messageEl.classList.add('bg-gray-200', 'text-gray-800', 'self-end');
     } else {
-        messageEl.classList.add('bg-blue-500', 'text-white', 'self-start');
+        messageEl.classList.add('bg-blue-500', 'text-white', 'self-start', 'assistant-response'); // Added class
     }
 
     messagesDiv.appendChild(messageEl);
@@ -71,7 +75,35 @@ function buildAugmentedPrompt(userInput) {
     }
     return `${prefix}\nUser Request: ${userInput}`;
 }
+// --- Helper: Download Last Response ---
+function downloadLastResponse() {
+    if (!lastAssistantResponse) {
+        alert("There is no response to download!");
+        return;
+    }
 
+    const filename = "assistant_response.txt";
+    // 1. Create a Blob object from the text string
+    const blob = new Blob([lastAssistantResponse], { type: 'text/plain;charset=utf-8' });
+    
+    // 2. Create a temporary anchor element
+    const a = document.createElement('a');
+    
+    // 3. Create a URL for the Blob and set it as the link's href
+    const url = URL.createObjectURL(blob);
+    a.href = url;
+    
+    // 4. Set the download attribute with the desired filename
+    a.download = filename;
+    
+    // 5. Simulate a click to trigger the download
+    document.body.appendChild(a);
+    a.click();
+    
+    // 6. Clean up: remove the element and revoke the temporary URL
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
 // -----------------------------------------------------------
 // Gemini Connector
 // -----------------------------------------------------------
@@ -121,6 +153,7 @@ async function sendMessage() {
 
     // UI updates
     displayMessage(userInput, true);
+
     promptInput.value = '';
     thinkingMessage.classList.remove('hidden');
     promptInput.disabled = true;
@@ -150,6 +183,10 @@ async function sendMessage() {
         }
 
         displayMessage(aiResponseText);
+        // --- NEW: Store response and enable button ---
+        lastAssistantResponse = aiResponseText;
+        downloadBtn.disabled = false;
+        // ---------------------------------------------
     } catch (err) {
         console.error(err);
         displayMessage(`❌ API Error: ${err.message}`);
@@ -192,6 +229,26 @@ corpusInput.addEventListener('change', (e) => {
         corpusText = "";
         displayMessage("⚠️ Please upload a valid .txt file.");
     }
+});
+
+// --- NEW/UPDATED EVENT LISTENERS START HERE ---
+
+// 1. Download Button Listener
+downloadBtn.addEventListener('click', downloadLastResponse);
+
+// 2. Reset Button Listener (using the ID from index.html)
+document.getElementById('reset-btn').addEventListener('click', () => {
+    resetChat(); // Clears messages and history
+    lastAssistantResponse = "";
+    downloadBtn.disabled = true;
+    displayMessage("Chat history and download state cleared.");
+});
+
+// 3. Updated Document Load Listener
+document.addEventListener('DOMContentLoaded', () => {
+    resetChat(); // Calls the initial chat reset
+    lastAssistantResponse = "";
+    downloadBtn.disabled = true;
 });
 
 document.addEventListener('DOMContentLoaded', resetChat);
