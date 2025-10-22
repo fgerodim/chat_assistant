@@ -42,24 +42,83 @@ let corpusText = "";
 // --- State for Download ---
 let lastAssistantResponse = "";
 
-// --- Helper: Display messages ---
+// --- Helper: Display messages ---OLD VERSION---
+//function displayMessage(text, isUser = false) {
+//    const messageEl = document.createElement('div');
+//    messageEl.classList.add('p-3', 'rounded-lg', 'max-w-xs', 'shadow-md');
+//    messageEl.textContent = text;
+
+//    if (isUser) {
+//        messageEl.classList.add('bg-gray-200', 'text-gray-800', 'self-end');
+//    } else {
+//        messageEl.classList.add('bg-blue-500', 'text-white', 'self-start', 'assistant-response'); // Added class
+//    }
+
+//    messagesDiv.appendChild(messageEl);
+//    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+//}
+// --- Helper: Display messages (NOW WITH TTS!) ---
 function displayMessage(text, isUser = false) {
     const messageEl = document.createElement('div');
-    messageEl.classList.add('p-3', 'rounded-lg', 'max-w-xs', 'shadow-md');
-    messageEl.textContent = text;
+    // Make the bubble a flex container to hold text and button
+    messageEl.classList.add('p-3', 'rounded-lg', 'max-w-xs', 'shadow-md', 'flex', 'items-center', 'space-x-2');
+
+    // 1. Put the text in its own <span> element
+    const textEl = document.createElement('span');
+    textEl.textContent = text;
+    textEl.classList.add('flex-grow'); // Lets the text take up most of the space
+
+    messageEl.appendChild(textEl); // Add the text to the bubble
 
     if (isUser) {
+        // --- THIS IS FOR THE USER ---
         messageEl.classList.add('bg-gray-200', 'text-gray-800', 'self-end');
     } else {
-        messageEl.classList.add('bg-blue-500', 'text-white', 'self-start', 'assistant-response'); // Added class
+        // --- THIS IS FOR THE ASSISTANT ---
+        messageEl.classList.add('bg-blue-500', 'text-white', 'self-start', 'assistant-response');
+
+        // 2. Create the speaker button
+        const speakButton = document.createElement('button');
+        speakButton.classList.add('flex-shrink-0', 'p-1', 'rounded-full', 'hover:bg-blue-400', 'focus:outline-none');
+        speakButton.title = "Read aloud";
+        
+        // 3. Add the speaker icon (pasted SVG)
+        speakButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+  <path stroke-linecap="round" stroke-linejoin="round" d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z" />
+</svg>`;
+
+        // 4. Add the click action!
+        speakButton.onclick = () => {
+            speakText(text); // Calls our new function from Step 1
+        };
+
+        messageEl.appendChild(speakButton); // Add the button to the bubble
     }
 
     messagesDiv.appendChild(messageEl);
     messagesDiv.scrollTop = messagesDiv.scrollHeight;
 }
 
+// --- Helper: Speak Text ---
+function speakText(text) {
+    // 1. Create a "speech object" from the text you want to speak
+    const utterance = new SpeechSynthesisUtterance(text);
+
+    // 2. (Optional) Tell it what language/accent to use.
+    // Since your project is about Spanish, you might want 'es-ES'!
+    utterance.lang = 'es-ES'; // For Spanish
+    //utterance.lang = 'en-US'; // For English
+
+    // 3. Stop any speech that is already playing
+    window.speechSynthesis.cancel();
+
+    // 4. Tell the browser to speak your new text
+    window.speechSynthesis.speak(utterance);
+}
+
 // --- Helper: Reset Chat State ---
 function resetChat() {
+    window.speechSynthesis.cancel();
     messagesDiv.innerHTML = '';
     hfConversationHistory = [];
     geminiConversationHistory = [];
