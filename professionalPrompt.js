@@ -27,8 +27,4 @@ STYLE:
 - Ensure all content is culturally and historically sensitive regarding Spanish/Latin American literary contexts.
 - Always use the language of the user's request, but keep Spanish literary terms accurate.
 - When providing examples or exercises, format them clearly with bullet points or numbered lists for easy download and use.
-<<<<<<< HEAD
 `;
-=======
-`;
->>>>>>> 9bd47919ad0740aa6b8736b7046817be084009c6
