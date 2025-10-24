@@ -101,9 +101,12 @@ function displayMessage(text, isUser = false) {
 
 // --- Helper: Speak Text ---
 function speakText(text) {
+    const cleanText = text.replace(/[*#_-]/g, ' ');
     // 1. Create a "speech object" from the text you want to speak
-    const utterance = new SpeechSynthesisUtterance(text);
+    const utterance = new SpeechSynthesisUtterance(cleanText);
 
+
+    
     // 2. (Optional) Tell it what language/accent to use.
     // Since your project is about Spanish, you might want 'es-ES'!
     utterance.lang = 'es-ES'; // For Spanish
