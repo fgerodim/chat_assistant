@@ -102,6 +102,8 @@ function displayMessage(text, isUser = false) {
 // --- Helper: Speak Text ---
 function speakText(text) {
     const cleanText = text.replace(/[*#_-]/g, ' ');
+
+   
     // 1. Create a "speech object" from the text you want to speak
     const utterance = new SpeechSynthesisUtterance(cleanText);
 
@@ -109,7 +111,7 @@ function speakText(text) {
     
     // 2. (Optional) Tell it what language/accent to use.
     // Since your project is about Spanish, you might want 'es-ES'!
-    utterance.lang = 'es-ES'; // For Spanish
+    utterance.lang = 'es-ES'; 
     //utterance.lang = 'en-US'; // For English
 
     // 3. Stop any speech that is already playing
@@ -140,31 +142,50 @@ function buildAugmentedPrompt(userInput) {
 // --- Helper: Download Last Response ---
 function downloadLastResponse() {
     if (!lastAssistantResponse) {
-        alert("There is no response to download!");
-        return;
-    }
+        alert("There is no response to download!");
+        return;
+    }
 
-    const filename = "assistant_response.txt";
-    // 1. Create a Blob object from the text string
-    const blob = new Blob([lastAssistantResponse], { type: 'text/plain;charset=utf-8' });
+    // --- 1. CONFIGURACIÓN (Setup) ---
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF('p', 'mm', 'a4');
     
-    // 2. Create a temporary anchor element
-    const a = document.createElement('a');
+    // --- NUEVO: DEFINIR TAMAÑO DE LETRA ---
+    const fontSize = 10; // <-- 1. ¡NUEVO! Ponemos el tamaño en 10pt
+    doc.setFontSize(fontSize); // <-- 2. ¡NUEVO! Aplicamos el tamaño al documento
     
-    // 3. Create a URL for the Blob and set it as the link's href
-    const url = URL.createObjectURL(blob);
-    a.href = url;
+    // --- 2. MÁRGENES y TAMAÑO de PÁGINA ---
+    const margin = 15; // 15mm
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const usableWidth = pageWidth - (margin * 2);
+    const maxPageHeight = pageHeight - margin;
+
+    // --- 3. LÍNEAS DE TEXTO (Text lines) ---
+    // This is a "regex" that finds most common emojis and removes them
+    const cleanText = lastAssistantResponse.replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F900}-\u{1F9FF}]/gu, '');
+
+    // Now we split the CLEAN text
+    const lines = doc.splitTextToSize(cleanText, usableWidth);
     
-    // 4. Set the download attribute with the desired filename
-    a.download = filename;
-    
-    // 5. Simulate a click to trigger the download
-    document.body.appendChild(a);
-    a.click();
-    
-    // 6. Clean up: remove the element and revoke the temporary URL
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    // --- 4. LÓGICA DE BUCLE (Loop Logic) ---
+    let cursorY = margin;
+    const lineHeight = 5; // <-- 3. ¡AJUSTADO! 5mm es mejor para letra 10 (antes 7)
+
+    lines.forEach(line => {
+        if (cursorY + lineHeight > maxPageHeight) {
+            doc.addPage();
+            doc.setFontSize(fontSize); // <-- 4. ¡IMPORTANTE! Poner la letra 10 en la nueva página
+            cursorY = margin;
+        }
+
+        doc.text(line, margin, cursorY);
+        cursorY += lineHeight;
+    });
+
+    // --- 5. GUARDAR (Save) ---
+    const filename = "assistant_response.pdf";
+    doc.save(filename);
 }
 // -----------------------------------------------------------
 // Gemini Connector
