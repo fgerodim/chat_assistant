@@ -30,6 +30,7 @@ const llmSelector = document.getElementById('llm-selector');
 const cefrSelector = document.getElementById('cefr-level');
 const corpusInput = document.getElementById('corpus-file-input');
 const downloadBtn = document.getElementById('download-btn'); 
+const micBtn = document.getElementById('mic-btn');
 
 // --- Conversation Histories ---
 let hfConversationHistory = [];
@@ -281,6 +282,52 @@ async function sendMessage() {
     }
 }
 
+// 1. Ελέγχουμε αν ο browser υποστηρίζει το SpeechRecognition
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+let recognition;
+
+if (SpeechRecognition) {
+    recognition = new SpeechRecognition();
+    recognition.continuous = false; // Σταματάει μόλις πάψουμε να μιλάμε
+    recognition.lang = 'es-ES';      // <-- ΣΗΜΑΝΤΙΚΟ: Ακούει για Ισπανικά!
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    // 2. Τι συμβαίνει όταν το API ακούσει κάτι
+    recognition.onresult = (event) => {
+        const speechResult = event.results[0][0].transcript;
+        promptInput.value = speechResult; // Βάζει το κείμενο στο κουτί
+        
+        // (Προαιρετικό: Κάνει focus και αλλάζει χρώμα κουμπιού)
+        promptInput.focus();
+        micBtn.classList.remove('bg-red-500'); // Σταματάει το κόκκινο
+        micBtn.classList.add('bg-gray-500');
+    };
+
+    // 3. Τι συμβαίνει αν γίνει λάθος (π.χ. δεν βρήκε μικρόφωνο)
+    recognition.onerror = (event) => {
+        console.error("Speech recognition error", event.error);
+        displayMessage(`⚠️ Speech Error: ${event.error}`);
+        micBtn.classList.remove('bg-red-500');
+        micBtn.classList.add('bg-gray-500');
+    };
+    
+    // 4. Όταν σταματήσει να ακούει
+    recognition.onend = () => {
+        micBtn.classList.remove('bg-red-500');
+        micBtn.classList.add('bg-gray-500');
+    };
+
+} else {
+    // Αν ο browser (π.χ. παλιός Firefox) δεν το υποστηρίζει
+    console.warn("Speech Recognition not supported in this browser.");
+    // Κάνουμε το κουμπί να μην πατιέται
+    if (micBtn) {
+        micBtn.disabled = true;
+        micBtn.title = "Speech recognition not supported in your browser";
+    }
+}
+
 // -----------------------------------------------------------
 // Event Listeners
 // -----------------------------------------------------------
@@ -333,5 +380,24 @@ document.addEventListener('DOMContentLoaded', () => {
     lastAssistantResponse = "";
     downloadBtn.disabled = true;
 });
-
+// --- ΝΕΟ: Mic Button Listener ---
+micBtn.addEventListener('click', () => {
+    if (recognition) { // Ελέγχει αν το API ομιλίας υπάρχει
+        try {
+            // Αλλάζει το κουμπί σε κόκκινο για να δείξει ότι "ακούει"
+            micBtn.classList.remove('bg-gray-500');
+            micBtn.classList.add('bg-red-500');
+            micBtn.title = "Listening... (Escuchando...)";
+            
+            // Ξεκινά την αναγνώριση ομιλίας
+            recognition.start();
+        } catch (err) {
+            // Αυτό συμβαίνει αν ο χρήστης πατήσει ξανά το κουμπί ενώ ήδη "ακούει"
+            console.warn("Recognition already started.", err.message);
+        }
+    } else {
+        // Αυτό θα τρέξει μόνο αν ο browser δεν υποστηρίζεται
+        displayMessage("⚠️ Speech recognition is not supported in your browser.");
+    }
+});
 document.addEventListener('DOMContentLoaded', resetChat);
