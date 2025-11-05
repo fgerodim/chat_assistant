@@ -427,21 +427,6 @@ downloadBtn.addEventListener('click', downloadLastResponse);
 // --- START: ADD THIS NEW LISTENER ---
 checkAnswerBtn.addEventListener('click', checkAnswer);
 // --- END: ADD THIS NEW LISTENER ---
-
-// 2. Reset Button Listener (using the ID from index.html)
-document.getElementById('reset-btn').addEventListener('click', () => {
-    resetChat(); // Clears messages and history
-    lastAssistantResponse = "";
-    downloadBtn.disabled = true;
-    displayMessage("Chat history and download state cleared.");
-});
-
-// 3. Updated Document Load Listener
-document.addEventListener('DOMContentLoaded', () => {
-    resetChat(); // Calls the initial chat reset
-    lastAssistantResponse = "";
-    downloadBtn.disabled = true;
-});
 // --- ΝΕΟ: Mic Button Listener ---
 micBtn.addEventListener('click', () => {
     if (recognition) { // Ελέγχει αν το API ομιλίας υπάρχει
@@ -462,4 +447,18 @@ micBtn.addEventListener('click', () => {
         displayMessage("⚠️ Speech recognition is not supported in your browser.");
     }
 });
-document.addEventListener('DOMContentLoaded', resetChat);
+// 2. Reset Button Listener (using the ID from index.html)
+document.getElementById('reset-btn').addEventListener('click', () => {
+    resetChat(); // Clears messages and history
+    lastAssistantResponse = "";
+    downloadBtn.disabled = true;
+    displayMessage("Chat history and download state cleared.");
+});
+
+// 3. Updated Document Load Listener
+document.addEventListener('DOMContentLoaded', () => {
+    resetChat(); // Calls the initial chat reset
+    lastAssistantResponse = "";
+    downloadBtn.disabled = true;
+});
+
