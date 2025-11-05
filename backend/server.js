@@ -47,6 +47,7 @@ app.post('/api/huggingface', async (req, res) => {
       body: JSON.stringify({ messages, model })
     });
     const data = await response.json();
+    console.log('HuggingFace Raw Response:', JSON.stringify(data, null, 2));
     res.json(data);
   } catch (error) {
     res.status(500).json({ error: error.message });

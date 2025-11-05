@@ -31,6 +31,7 @@ const cefrSelector = document.getElementById('cefr-level');
 const corpusInput = document.getElementById('corpus-file-input');
 const downloadBtn = document.getElementById('download-btn'); 
 const micBtn = document.getElementById('mic-btn');
+const checkAnswerBtn = document.getElementById('check-answer-btn');
 
 // --- Conversation Histories ---
 let hfConversationHistory = [];
@@ -313,6 +314,77 @@ if (SpeechRecognition) {
         micBtn.title = "Speech recognition not supported in your browser";
     }
 }
+// --- START: NEW CHECK ANSWER FUNCTION ---
+async function checkAnswer() {
+    // 1. Check if there is an exercise to check
+    if (!lastAssistantResponse) {
+        displayMessage("⚠️ There is no exercise to check.");
+        return;
+    }
+
+    // 2. Create the special prompt for the AI
+    const checkAnswerPrompt = `
+        The user has just completed the following exercise:
+        ---
+        ${lastAssistantResponse}
+        ---
+        Please provide the correct answers and a brief, supportive explanation.
+        Do not ask a new question. Just provide the solution.
+    `;
+
+    // 3. UI updates (Thinking...)
+    displayMessage("Checking answer...", true); // Show "Checking answer..." as a user message
+    thinkingMessage.classList.remove('hidden');
+    promptInput.disabled = true;
+    sendBtn.disabled = true;
+    checkAnswerBtn.disabled = true;
+
+    const selectedLLM = llmSelector.value;
+    let aiSolutionText = "";
+
+    try {
+        // 4. Call the AI (similar to sendMessage)
+        if (selectedLLM === 'gemini') {
+            // We create a *temporary* history for this request.
+            // We include the system prompt, the exercise, and our new request.
+            const tempGeminiHistory = [
+                { role: "user", parts: [{ text: systemPrompt }] },
+                { role: "model", parts: [{ text: lastAssistantResponse }] },
+                { role: "user", parts: [{ text: checkAnswerPrompt }] }
+            ];
+            aiSolutionText = await getGeminiCompletion(tempGeminiHistory);
+            // IMPORTANT: We do *not* save this to the main geminiConversationHistory
+            // because we don't want it to confuse the AI's memory.
+            
+        } else {
+            // Temporary history for HF
+            const tempHfHistory = [
+                { role: "system", content: systemPrompt },
+                { role: "assistant", content: lastAssistantResponse },
+                { role: "user", content: checkAnswerPrompt }
+            ];
+            aiSolutionText = await getHuggingFaceCompletion(tempHfHistory);
+            // We also do *not* save this to hfConversationHistory
+        }
+
+        // 5. Display the AI's solution
+        displayMessage(aiSolutionText);
+        // We DON'T update lastAssistantResponse here, 
+        // so the user can download the *original exercise*, not the answer.
+
+    } catch (err) {
+        console.error(err);
+        displayMessage(`❌ API Error: ${err.message}`);
+    } finally {
+        // 6. Re-enable UI
+        thinkingMessage.classList.add('hidden');
+        promptInput.disabled = false;
+        sendBtn.disabled = false;
+        checkAnswerBtn.disabled = false;
+        promptInput.focus();
+    }
+}
+// --- END: NEW CHECK ANSWER FUNCTION ---
 
 // -----------------------------------------------------------
 // Event Listeners
@@ -351,6 +423,10 @@ corpusInput.addEventListener('change', (e) => {
 
 // 1. Download Button Listener
 downloadBtn.addEventListener('click', downloadLastResponse);
+
+// --- START: ADD THIS NEW LISTENER ---
+checkAnswerBtn.addEventListener('click', checkAnswer);
+// --- END: ADD THIS NEW LISTENER ---
 
 // 2. Reset Button Listener (using the ID from index.html)
 document.getElementById('reset-btn').addEventListener('click', () => {
