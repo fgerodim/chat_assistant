@@ -43,21 +43,7 @@ let corpusText = "";
 // --- State for Download ---
 let lastAssistantResponse = "";
 
-// --- Helper: Display messages ---OLD VERSION---
-//function displayMessage(text, isUser = false) {
-//    const messageEl = document.createElement('div');
-//    messageEl.classList.add('p-3', 'rounded-lg', 'max-w-xs', 'shadow-md');
-//    messageEl.textContent = text;
 
-//    if (isUser) {
-//        messageEl.classList.add('bg-gray-200', 'text-gray-800', 'self-end');
-//    } else {
-//        messageEl.classList.add('bg-blue-500', 'text-white', 'self-start', 'assistant-response'); // Added class
-//    }
-
-//    messagesDiv.appendChild(messageEl);
-//    messagesDiv.scrollTop = messagesDiv.scrollHeight;
-//}
 // --- Helper: Display messages (NOW WITH TTS!) ---
 function displayMessage(text, isUser = false) {
     const messageEl = document.createElement('div');
