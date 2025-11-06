@@ -44,6 +44,7 @@ let corpusText = "";
 // --- State for Download ---
 let lastAssistantResponse = "";
 
+let logoImage = null;
 
 // --- Helper: Display messages (NOW WITH TTS!) ---
 function displayMessage(text, isUser = false) {
@@ -127,53 +128,97 @@ function buildAugmentedPrompt(userInput) {
     }
     return `${prefix}\nUser Request: ${userInput}`;
 }
+
+// --- *** NEW HELPER: Load Image as Promise *** ---
+function loadLogoImage(src) {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.src = src;
+        img.onload = () => resolve(img);
+        img.onerror = (err) => {
+            console.error(`Failed to load image: ${src}`, err);
+            reject(err);
+        };
+    });
+}
 // --- Helper: Download Last Response ---
-function downloadLastResponse() {
+// --- *** UPDATED HELPER: Download Last Response (with Logo) *** ---
+async function downloadLastResponse() { // <-- It's now "async"
     if (!lastAssistantResponse) {
-        alert("There is no response to download!");
-        return;
-    }
+        alert("There is no response to download!");
+        return;
+    }
+
+    // Safety check: If pre-load failed, try to load it now.
+    if (!logoImage) {
+        console.warn("Logo was not pre-loaded. Attempting to load now...");
+        try {
+            // This will only run if the pre-load failed
+            logoImage = await loadLogoImage('cervantes.jpg'); 
+            console.log("Logo loaded on-demand.");
+        } catch (err) {
+            console.error("Failed to load logo on-demand:", err);
+            // We can still proceed to generate the PDF without the logo
+        }
+    }
 
     // --- 1. CONFIGURACIÓN (Setup) ---
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF('p', 'mm', 'a4');
-    
-    // --- NUEVO: DEFINIR TAMAÑO DE LETRA ---
-    const fontSize = 10; // <-- 1. ¡NUEVO! Ponemos el tamaño en 10pt
-    doc.setFontSize(fontSize); // <-- 2. ¡NUEVO! Aplicamos el tamaño al documento
-    
-    // --- 2. MÁRGENES y TAMAÑO de PÁGINA ---
-    const margin = 15; // 15mm
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const pageHeight = doc.internal.pageSize.getHeight();
-    const usableWidth = pageWidth - (margin * 2);
-    const maxPageHeight = pageHeight - margin;
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF('p', 'mm', 'a4');
 
-    // --- 3. LÍNEAS DE TEXTO (Text lines) ---
-    // This is a "regex" that finds most common emojis and removes them
+    // --- 2. TAMAÑO DE LETRA ---
+    const fontSize = 10;
+    doc.setFontSize(fontSize); 
+
+    // --- 3. MÁRGENES y TAMAÑO de PÁGINA ---
+    const margin = 15; // 15mm
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const usableWidth = pageWidth - (margin * 2);
+    const maxPageHeight = pageHeight - margin; // Max Y position for text
+
+    // --- 4. CONFIGURACIÓN DE IMAGEN (LOGO) ---
+    const imgWidth = 15; // 10mm width (you can change this)
+    const imgHeight = 15; // 10mm height (you can change this)
+
+    // Position: Bottom-right corner
+    const imgX = pageWidth - margin - imgWidth;
+    const imgY = pageHeight - margin - imgHeight;
+
+    // --- 5. LÍNEAS DE TEXTO (Text lines) ---
     const cleanText = lastAssistantResponse.replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F900}-\u{1F9FF}]/gu, '');
-
-    // Now we split the CLEAN text
     const lines = doc.splitTextToSize(cleanText, usableWidth);
-    
-    // --- 4. LÓGICA DE BUCLE (Loop Logic) ---
+
+    // --- 6. LÓGICA DE BUCLE (Loop Logic) ---
     let cursorY = margin;
-    const lineHeight = 5; // <-- 3. ¡AJUSTADO! 5mm es mejor para letra 10 (antes 7)
+    const lineHeight = 5; 
+
+    // --- Add image to the FIRST page ---
+    if (logoImage) {
+        // We tell jsPDF it's a 'JPEG' file
+        doc.addImage(logoImage, 'JPEG', imgX, imgY, imgWidth, imgHeight);
+    }
 
     lines.forEach(line => {
+        // When we need a new page...
         if (cursorY + lineHeight > maxPageHeight) {
             doc.addPage();
-            doc.setFontSize(fontSize); // <-- 4. ¡IMPORTANTE! Poner la letra 10 en la nueva página
+            doc.setFontSize(fontSize);
             cursorY = margin;
+
+            // --- Add image to the NEW page too ---
+            if (logoImage) {
+                doc.addImage(logoImage, 'JPEG', imgX, imgY, imgWidth, imgHeight);
+            }
         }
 
-        doc.text(line, margin, cursorY);
-        cursorY += lineHeight;
-    });
+        doc.text(line, margin, cursorY);
+        cursorY += lineHeight;
+    });
 
-    // --- 5. GUARDAR (Save) ---
-    const filename = "assistant_response.pdf";
-    doc.save(filename);
+    // --- 7. GUARDAR (Save) ---
+    const filename = "assistant_response.pdf";
+    doc.save(filename);
 }
 // -----------------------------------------------------------
 // Gemini Connector
@@ -455,10 +500,21 @@ document.getElementById('reset-btn').addEventListener('click', () => {
     displayMessage("Chat history and download state cleared.");
 });
 
-// 3. Updated Document Load Listener
+// --- *** UPDATED Document Load Listener (with Logo Pre-load) *** ---
 document.addEventListener('DOMContentLoaded', () => {
-    resetChat(); // Calls the initial chat reset
-    lastAssistantResponse = "";
-    downloadBtn.disabled = true;
+    resetChat(); // Calls the initial chat reset
+    lastAssistantResponse = "";
+    downloadBtn.disabled = true;
+
+    // --- NEW: Pre-load the logo image ---
+    loadLogoImage('cervantes.jpg')
+        .then(img => {
+            logoImage = img; // Store the loaded image object
+            console.log("Logo image 'cervantes.jpg' pre-loaded successfully.");
+        })
+        .catch(err => {
+            console.error("Error pre-loading logo image 'cervantes.jpg'. Make sure it's in the correct folder.", err);
+        });
+    // ------------------------------------
 });
 
