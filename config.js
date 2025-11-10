@@ -6,6 +6,7 @@ import { systemPrompt } from "./professionalPrompt.js";
 
 // --- API Endpoints ---
 const RENDER_SERVER_URL = "https://chat-assistant-txqb.onrender.com";
+//const RENDER_SERVER_URL = "http://localhost:3000";
 
 // We export everything so other files can use these settings
 export const HF_API_URL = `${RENDER_SERVER_URL}/api/huggingface`;
