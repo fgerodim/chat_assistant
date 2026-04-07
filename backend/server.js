@@ -106,7 +106,7 @@ app.post('/api/gemini', async (req, res) => {
 // Endpoint for Hugging Face API
 app.post('/api/huggingface', async (req, res) => {
   const { messages, model } = req.body;
-  //const url = 'https://router.huggingface.co/v1/chat/completions';
+  // const url = 'https://router.huggingface.co/v1/chat/completions';
   const url = 'https://api-inference.huggingface.co/models/Qwen/Qwen2.5-7B-Instruct/v1/chat/completions';
   try {
     const response = await fetch(url, {
