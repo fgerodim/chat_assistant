@@ -4,30 +4,24 @@ const cors = require('cors');
 const fetch = require('node-fetch').default;
 const app = express();
 
-// --- ADDED THIS ---
 // Import Google Sheets library
 const { google } = require('googleapis');
-// ------------------
 
 app.use(cors()); // Allows frontend to connect
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
-// Your API keys from environment variables (hidden!)
+//  API keys from environment variables (hidden!)
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const HF_API_TOKEN = process.env.HF_API_TOKEN;
 
-// --- ADDED THIS (AND YOUR SECRETS) ---
+
 // --- Google Sheets Configuration ---
 
-// This is the "Secret #1" you saved from Phase 1.
-// Paste the long ID from your sheet's URL between the quotes.
-const SPREADSHEET_ID = '1ap8KeOPTkt6Ixc7J9iMeY_K54V2KiGKCOYYowkMD9jY'; // 👈 PASTE YOUR ID
-
-// This tells Google to find the "Secret #2" file you added in Step 6.
+const SPREADSHEET_ID = '1ap8KeOPTkt6Ixc7J9iMeY_K54V2KiGKCOYYowkMD9jY'; 
 const GOOGLE_CREDS_PATH = './google-creds.json';
 
-// This sets up the authentication
+// Set up the authentication
 const auth = new google.auth.GoogleAuth({
     keyFile: GOOGLE_CREDS_PATH,
     scopes: ['https://www.googleapis.com/auth/spreadsheets'],
@@ -35,7 +29,6 @@ const auth = new google.auth.GoogleAuth({
 const sheets = google.sheets({ version: 'v4', auth });
 // ------------------------------------
 
-// --- MODIFIED THIS ---
 // --- Helper function for logging to Google Sheets ---
 async function writeToLog(model, userMessage, aiResponse) {
     const timestamp = new Date().toISOString();
@@ -50,8 +43,7 @@ async function writeToLog(model, userMessage, aiResponse) {
         ? aiResponse.choices?.[0]?.message?.content
         : aiResponse.candidates?.[0]?.content?.parts?.[0]?.text;
 
-    // This is the data that will become a new row in your sheet
-    // It matches the columns we created in Step 1
+    // This is the data that will become a new row in my sheet
     const newRow = [
         timestamp,
         model,
@@ -60,7 +52,7 @@ async function writeToLog(model, userMessage, aiResponse) {
     ];
 
     try {
-        // This command appends the new row to your sheet
+        // This command appends the new row to my sheet
         await sheets.spreadsheets.values.append({
             spreadsheetId: SPREADSHEET_ID,
             range: 'Sheet1!A:D', // This means "use columns A, B, C, and D"
@@ -75,7 +67,6 @@ async function writeToLog(model, userMessage, aiResponse) {
         console.error('Failed to write to Google Sheet:', err);
     }
 }
-// ------------------------------------
 
 
 // Endpoint for Gemini API
@@ -92,7 +83,7 @@ app.post('/api/gemini', async (req, res) => {
     const data = await response.json();
     console.log('Gemini Raw Response:', JSON.stringify(data, null, 2));
 
-    // --- MODIFIED THIS ---
+  
     // This tells our new function to run *after* we get a response
     // We don't use 'await' so the user doesn't have to wait for the log
     writeToLog('GEMINI', req.body.contents[req.body.contents.length - 1], data);
@@ -120,7 +111,6 @@ app.post('/api/huggingface', async (req, res) => {
     const data = await response.json();
     console.log('HuggingFace Raw Response:', JSON.stringify(data, null, 2));
 
-    // --- MODIFIED THIS ---
     // This also tells our new function to run
     writeToLog(`HF/${req.body.model}`, req.body.messages[req.body.messages.length - 1], data);
 
