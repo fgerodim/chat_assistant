@@ -36,12 +36,21 @@ function resetChat() {
 }
 
 // --- Helper: Build augmented prompt ---
-function buildAugmentedPrompt(userInput) {
+/*function buildAugmentedPrompt(userInput) {
     let prefix = `Target CEFR Level: ${currentCEFR}.`;
     if (corpusText) {
         prefix += ` Use the following corpus as context:\n---\n${corpusText}\n---\n`;
     }
     return `${prefix}\nUser Request: ${userInput}`;
+}*/
+function buildAugmentedPrompt(userInput) {
+    const isFirstMessage = hfConversationHistory.length === 0 && geminiConversationHistory.length === 0;
+    let prompt = `Target CEFR Level: ${currentCEFR}.`;
+    if (isFirstMessage && corpusText) {
+        prompt += ` Use the following corpus as context:\n---\n${corpusText}\n---`;
+    }
+    prompt += `\nUser Request: ${userInput}`;
+    return prompt;
 }
 
 // -----------------------------------------------------------
